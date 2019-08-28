@@ -45,7 +45,6 @@ type Metadata struct {
 	PGPKeys                   []pgpkey    `yaml:"pgp" json:"pgp"`
 	UnencryptedSuffix         string      `yaml:"unencrypted_suffix,omitempty" json:"unencrypted_suffix,omitempty"`
 	EncryptedSuffix           string      `yaml:"encrypted_suffix,omitempty" json:"encrypted_suffix,omitempty"`
-	EncryptedRegex            string      `yaml:"encrypted_regex,omitempty" json:"encrypted_regex,omitempty"`
 	Version                   string      `yaml:"version" json:"version"`
 }
 
@@ -91,7 +90,6 @@ func MetadataFromInternal(sopsMetadata sops.Metadata) Metadata {
 	m.LastModified = sopsMetadata.LastModified.Format(time.RFC3339)
 	m.UnencryptedSuffix = sopsMetadata.UnencryptedSuffix
 	m.EncryptedSuffix = sopsMetadata.EncryptedSuffix
-	m.EncryptedRegex = sopsMetadata.EncryptedRegex
 	m.MessageAuthenticationCode = sopsMetadata.MessageAuthenticationCode
 	m.Version = sopsMetadata.Version
 	m.ShamirThreshold = sopsMetadata.ShamirThreshold
@@ -185,23 +183,10 @@ func (m *Metadata) ToInternal() (sops.Metadata, error) {
 	if err != nil {
 		return sops.Metadata{}, err
 	}
-
-	cryptRuleCount := 0
-	if m.UnencryptedSuffix != "" {
-		cryptRuleCount++
+	if m.UnencryptedSuffix != "" && m.EncryptedSuffix != "" {
+		return sops.Metadata{}, fmt.Errorf("Cannot use both encrypted_suffix and unencrypted_suffix in the same file")
 	}
-	if m.EncryptedSuffix != "" {
-		cryptRuleCount++
-	}
-	if m.EncryptedRegex != "" {
-		cryptRuleCount++
-	}
-
-	if cryptRuleCount > 1 {
-		return sops.Metadata{}, fmt.Errorf("Cannot use more than one of encrypted_suffix, unencrypted_suffix, or encrypted_regex in the same file")
-	}
-
-	if cryptRuleCount == 0 {
+	if m.UnencryptedSuffix == "" && m.EncryptedSuffix == "" {
 		m.UnencryptedSuffix = sops.DefaultUnencryptedSuffix
 	}
 	return sops.Metadata{
@@ -211,7 +196,6 @@ func (m *Metadata) ToInternal() (sops.Metadata, error) {
 		MessageAuthenticationCode: m.MessageAuthenticationCode,
 		UnencryptedSuffix:         m.UnencryptedSuffix,
 		EncryptedSuffix:           m.EncryptedSuffix,
-		EncryptedRegex:            m.EncryptedRegex,
 		LastModified:              lastModified,
 	}, nil
 }
