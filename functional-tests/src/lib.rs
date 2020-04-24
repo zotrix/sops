@@ -68,11 +68,8 @@ mod tests {
     #[test]
     fn encrypt_json_file() {
         let file_path = prepare_temp_file(
-            "test_encrypt.json",
-            b"{
-    \"foo\": 2,
-    \"bar\": \"baz\"
-}",
+            "encrypt_json_file.json",
+            include_bytes!("../res/simple_document.json"),
         );
         let output = run_sops(vec!["-e", &file_path]);
         assert!(output.status.success(), "sops didn't exit successfully");
@@ -96,10 +93,7 @@ mod tests {
     fn publish_json_file_s3() {
         let file_path = prepare_temp_file(
             "test_encrypt_publish_s3.json",
-            b"{
-    \"foo\": 2,
-    \"bar\": \"baz\"
-}",
+            include_bytes!("../res/simple_document.json"),
         );
         assert!(
             run_sops(vec!["-e", "-i", &file_path]).status.success(),
@@ -119,10 +113,7 @@ mod tests {
     fn publish_json_file_vault() {
         let file_path = prepare_temp_file(
             "test_encrypt_publish_vault.json",
-            b"{
-    \"foo\": 2,
-    \"bar\": \"baz\"
-}",
+            include_bytes!("../res/simple_document.json"),
         );
         assert!(
             run_sops(vec!["-e", "-i", &file_path,]).status.success(),
@@ -142,10 +133,7 @@ mod tests {
     fn publish_json_file_vault_version_1() {
         let file_path = prepare_temp_file(
             "test_encrypt_publish_vault_version_1.json",
-            b"{
-    \"foo\": 2,
-    \"bar\": \"baz\"
-}",
+            include_bytes!("../res/simple_document.json"),
         );
         assert!(
             run_sops(vec!["-e", "-i", &file_path]).status.success(),
@@ -169,10 +157,7 @@ mod tests {
 
         let file_path = prepare_temp_file(
             "test_encrypt_kms.json",
-            b"{
-    \"foo\": 2,
-    \"bar\": \"baz\"
-}",
+            include_bytes!("../res/simple_document.json"),
         );
 
         let output = run_sops(vec!["--kms", &kms_arn, "-e", &file_path]);
@@ -489,10 +474,7 @@ b: ba"#
 
         let file_path = prepare_temp_file(
             "test_roundtrip_kms_encryption_context.json",
-            b"{
-    \"foo\": 2,
-    \"bar\": \"baz\"
-}",
+            include_bytes!("../res/multiple_keys.yaml"),
         );
         let output = run_sops(vec![
             "--kms",
